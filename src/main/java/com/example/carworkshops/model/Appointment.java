@@ -14,7 +14,11 @@ import java.time.ZonedDateTime;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @Entity
-@Table(name = "appointment")
+@Table(name = "appointment",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "appointment_at"}, name = "unique_user_appointment"),
+    }
+)
 public class Appointment extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
