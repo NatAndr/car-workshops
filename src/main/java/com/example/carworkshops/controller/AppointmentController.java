@@ -2,6 +2,7 @@ package com.example.carworkshops.controller;
 
 import com.example.carworkshops.controller.dto.AppointmentChangeDto;
 import com.example.carworkshops.controller.dto.AppointmentCreateDto;
+import com.example.carworkshops.controller.validator.AppointmentCreateValidator;
 import com.example.carworkshops.model.Appointment;
 import com.example.carworkshops.model.DataResultObject;
 import com.example.carworkshops.service.AppointmentService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -19,10 +21,13 @@ import java.util.List;
 @RequestMapping("/api/appointment")
 public class AppointmentController {
     private final AppointmentService appointmentService;
+    private final AppointmentCreateValidator appointmentCreateValidator;
 
     @Autowired
-    public AppointmentController(AppointmentService appointmentService) {
+    public AppointmentController(AppointmentService appointmentService,
+                                 AppointmentCreateValidator appointmentCreateValidator) {
         this.appointmentService = appointmentService;
+        this.appointmentCreateValidator = appointmentCreateValidator;
     }
 
     @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -42,9 +47,9 @@ public class AppointmentController {
     @PostMapping(value = "/", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DataResultObject<Appointment>> create(
-        @Valid @RequestBody AppointmentCreateDto dto
+        @Valid @RequestBody AppointmentCreateDto appointmentCreateDto
     ) {
-        Appointment appointment = appointmentService.create(dto);
+        Appointment appointment = appointmentService.create(appointmentCreateDto);
 
         return HttpUtils.withStatus(appointment, HttpStatus.CREATED);
     }
@@ -53,9 +58,9 @@ public class AppointmentController {
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DataResultObject<Appointment>> changeDateTime(
         @PathVariable Long id,
-        @Valid @RequestBody AppointmentChangeDto dto
+        @Valid @RequestBody AppointmentChangeDto appointmentChangeDto
     ) {
-        Appointment appointment = appointmentService.changeDateTime(id, dto);
+        Appointment appointment = appointmentService.changeDateTime(id, appointmentChangeDto);
 
         return HttpUtils.ok(appointment);
     }
@@ -67,5 +72,10 @@ public class AppointmentController {
         appointmentService.delete(id);
 
         return HttpUtils.noContent();
+    }
+
+    @InitBinder("appointmentCreateDto")
+    public void setupBinder(WebDataBinder binder) {
+        binder.addValidators(appointmentCreateValidator);
     }
 }
